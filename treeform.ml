@@ -6,10 +6,9 @@ type tree =
   | Answer of bool
   | Question of nat * (bool -> tree)
 
-(* WORK IN PROGRESS *)
+(* FUNCTIONS *)
 
 (* val to_tree : ((nat -> bool) -> bool) -> tree *)
-
 let to_tree f =
   (*a' is the starting sequence where the functional has not checked any link,
     we specify more 'known' links as more of the sequence is inspected by f *)
@@ -44,7 +43,6 @@ let to_tree f =
 
   
 (* val from_tree : tree -> ((nat -> bool) -> bool) *)
-
 let rec from_tree t a' =
   match t with
     | Answer b -> b (* If the tree only contains a leaf we have found the result. *)
@@ -59,6 +57,37 @@ let rec from_tree t a' =
 	  from_tree subtree a'
 	  )
 
+	  
+(* WORK IN PROGRESS *)
+
+(* val epsilon_tree : tree -> (nat -> bool) *)
+(* TODO: tidy up *)
+let rec epsilon_tree t = 
+  let rec a' n = false
+  and construct b' t =
+    match t with
+	  | (Answer _) -> b'
+	  | Question (n, branch) ->
+	    (
+	    let nextb' k =
+		  let checkb' = (if k = n then true else (b' n))
+		  in
+		  (
+		  if k = n
+		  then (if ((from_tree t)(construct checkb' t)) then true else false)
+		  else (b' n)
+		  )
+		in
+		construct nextb' (branch (nextb' n))
+		)
+  in
+  construct a' t
+  
+(* val epsilon : ((nat -> bool) -> bool) -> (nat -> bool) *)
+let rec epsilon p = epsilon_tree (to_tree p)
+
+let rec exists p = p (epsilon p)
+  
 
 (* TEST CHAMBER *)
 
@@ -84,7 +113,6 @@ let a3 n =
     | 7 -> false
 	| 12 -> true
 	| _ -> true
-
 	
 (* FOR THE FUTURE *)
 
@@ -100,11 +128,3 @@ let a3 n =
 
      from_tree (to_tree φ) f = φ f
 *)
-
-(* val epsilon_tree : tree -> (nat -> bool) *)
-let epsilon_tree t = failwith "not implemented"
-
-(* val epsilon : ((nat -> bool) -> bool) -> (nat -> bool) *)
-let epsilon p = epsilon_tree (to_tree p)
-
-let exists p = p (epsilon p)
