@@ -62,21 +62,33 @@ let rec from_tree t a' =
 
 (* val epsilon_tree : tree -> (nat -> bool) *)
 (* TODO: tidy up *)
-let rec epsilon_tree t = 
+(* "epsilon_tree" constructs a sequence for which the functional (from_tree t) will
+  evaluate true if such a sequence exists. If no such sequence exists the function
+  still returns a sequence. *)
+let epsilon_tree t = 
+  (* We define a recursive function which adjusts a given sequence to find the answer
+    and a starting sequence "a'" to pass onto the "construct" function to start with. *)
   let rec a' n = false
   and construct b' t =
     match t with
+	  (* If the function has reached a leaf we return the sequence as it is since there
+	    is no more tree to inspect. Otherwise we adjust the sequence based on the current
+		root of the tree and continue with the appropriate tree branch. *)
 	  | (Answer _) -> b'
 	  | Question (n, branch) ->
 	    (
+		(* We define the corresponding functional of the tree we are inspecting as "f" and
+		  a 'testing' sequence "checkb'" with the n-th link being true. We are working with
+		  a boolean tree so this sequence corresponds to the tree's 'true' branch. *)
+		let f = from_tree t 
+		and checkb' l = (if l = n then true else (b' l))
+		in
+		(* If there exists a sequence that fits our criteria with the n-th link true, we use
+		  that, otherwise we set the n-th link of the sequence to false before moving on. *)
 	    let nextb' k =
-		  let checkb' = (if k = n then true else (b' n))
-		  in
-		  (
 		  if k = n
-		  then (if ((from_tree t)(construct checkb' t)) then true else false)
+		  then (if (f (construct checkb' (branch true))) then true else false)
 		  else (b' n)
-		  )
 		in
 		construct nextb' (branch (nextb' n))
 		)
@@ -86,7 +98,8 @@ let rec epsilon_tree t =
 (* val epsilon : ((nat -> bool) -> bool) -> (nat -> bool) *)
 let rec epsilon p = epsilon_tree (to_tree p)
 
-let rec exists p = p (epsilon p)
+(* val exists : ((nat -> bool) -> bool) -> bool *)
+let exists p = p (epsilon p)
   
 
 (* TEST CHAMBER *)
