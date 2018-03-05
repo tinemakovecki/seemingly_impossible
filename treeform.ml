@@ -15,7 +15,7 @@ let to_tree f =
   let rec a' n =  raise (DontKnow n)
   (*"search" follows the decision making process of the functional
     and generates the desired tree along the way. Vertices "Question (n, branch)" 
-	are appended when f checks the n-th link of the sequence
+    are appended when f checks the n-th link of the sequence
     and the branches in a vertex are decided by further actions of f. *)
   and search f b' =
     (* Try to find the result of the functional without checking any unknown links of the sequence b'*)
@@ -27,7 +27,7 @@ let to_tree f =
 	    The branches are based on the n-th link of the parameter sequence b',
 	    "newb'" is a new sequence where the n-th link is not unknown anymore.
 	    We continue figuring out what the result of the functional is 
-		now that the parameter sequence has one more known link *)
+	    now that the parameter sequence has one more known link *)
       (
       let branch b =
         let newb' k =
@@ -49,7 +49,7 @@ let rec from_tree t a' =
     | Question (k, branch) ->
 	  (*Otherwise (a' k) decides which branch of the tree we follow.
 	    val branch : bool -> tree, therefore (branch (a' k))
-		is a tree. We continue inspecting the selected subtree. *)
+	    is a tree. We continue inspecting the selected subtree. *)
 	  (
 	  let subtree =
 	    branch (a' k)
@@ -73,7 +73,7 @@ let epsilon_tree t =
     match t with
 	  (* If the function has reached a leaf we return the sequence as it is since there
 	    is no more tree to inspect. Otherwise we adjust the sequence based on the current
-		root of the tree and continue with the appropriate tree branch. *)
+	    root of the tree and continue with the appropriate tree branch. *)
 	  | (Answer _) -> b'
 	  | Question (n, branch) ->
 	    (
@@ -104,6 +104,8 @@ let exists p = p (epsilon p)
 
 (* TEST CHAMBER *)
 
+(* functionals *)
+
 let g a' =
   match (a' 7) with
     | true -> true
@@ -112,6 +114,24 @@ let g a' =
 let t = to_tree g
 
 let g' = from_tree t
+
+(* Have tried an example with up to 14 branchings, 
+  did not notice significant delays in processing. *)
+let f a' =
+  match (a' 7) with
+    | _ -> 
+	(match (a' 9) with
+	  | _ ->
+	  (match (a' 5) with
+	    | _ ->
+		(match (a' 3) with
+		  | true -> false
+		  | false -> true
+		)
+	  )
+	)
+
+(* sequences *)
 
 let a1 n = true
 
@@ -122,10 +142,10 @@ let a2 n =
 	| _ -> true
 	
 let a3 n =
-  match n with
-    | 7 -> false
-	| 12 -> true
-	| _ -> true
+  match (n mod 2) with
+    | 0 -> false
+	| 1 -> true
+
 	
 (* FOR THE FUTURE *)
 
