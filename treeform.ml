@@ -57,18 +57,16 @@ let rec from_tree t a' =
 	  from_tree subtree a'
 	  )
 
-	  
-(* WORK IN PROGRESS *)
 
-(* val epsilon_tree : tree -> (nat -> bool) *)
 (* TODO: tidy up *)
+(* val epsilon_tree : tree -> (nat -> bool) *)
 (* "epsilon_tree" constructs a sequence for which the functional (from_tree t) will
   evaluate true if such a sequence exists. If no such sequence exists the function
   still returns a sequence. *)
 let epsilon_tree t = 
   (* We define a recursive function which adjusts a given sequence to find the answer
     and a starting sequence "a'" to pass onto the "construct" function to start with. *)
-  let rec a' n = false
+  let rec a' n = true
   and construct b' t =
     match t with
 	  (* If the function has reached a leaf we return the sequence as it is since there
@@ -100,7 +98,45 @@ let rec epsilon p = epsilon_tree (to_tree p)
 
 (* val exists : ((nat -> bool) -> bool) -> bool *)
 let exists p = p (epsilon p)
-  
+
+
+(* WORK IN PROGRESS *)
+
+(* val bfs_epsilon_tree : tree -> (nat -> bool) *)
+(* "bfs_epsilon_tree" uses bfs to construct a sequence for which the functional 
+  (from_tree t) will evaluate true if such a sequence exists. If no such sequence
+  exists the function still returns a sequence. *)
+(*
+let bfs_epsilon_tree t = 
+  let rec a' n = true
+  and construct b' t n m =
+    (* construct will only inspect the tree up to a certain depth, which shall 
+	  increase in each recursive function call as needed.
+      n - maximum depth
+      m - current depth  *)
+	(* requires rewrite *)
+	match (n-m) with
+	  | 0 -> construct b' t (n+1) m
+	  | _ ->
+	  ( (* requires rewrite *)
+      match t with
+	    | (Answer _) -> b'
+	    | Question (n, branch) ->
+	      (
+		  let f = from_tree t 
+		  and checkb' l = (if l = n then true else (b' l))
+		  in
+	      let nextb' k =
+		    if k = n
+		    then (if (f (construct checkb' (branch true))) then true else false)
+		    else (b' n)
+		  in
+		  construct nextb' (branch (nextb' n))
+		  )
+	  )
+  in
+  construct a' t
+*)
 
 (* TEST CHAMBER *)
 
