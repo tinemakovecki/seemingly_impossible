@@ -102,42 +102,47 @@ let exists p = p (epsilon p)
 
 (* WORK IN PROGRESS *)
 
+exception NotDeepEnough of nat
 (* val bfs_epsilon_tree : tree -> (nat -> bool) *)
 (* "bfs_epsilon_tree" uses bfs to construct a sequence for which the functional 
   (from_tree t) will evaluate true if such a sequence exists. If no such sequence
   exists the function still returns a sequence. *)
 (*
 let bfs_epsilon_tree t = 
-  let rec a' n = true
-  and construct b' t n m =
-    (* construct will only inspect the tree up to a certain depth, which shall 
-	  increase in each recursive function call as needed.
+  let rec limited_construct b' t n m =
+    (* limited_construct will only inspect the tree up to a certain depth,
+	  if it checks all the options and doesn't find an answer it will raise
+	  an exception.
       n - maximum depth
       m - current depth  *)
-	(* requires rewrite *)
 	match (n-m) with
-	  | 0 -> construct b' t (n+1) m
+	  | 0 ->
+        (	  
+	    match t with
+		  | (Answer true) -> true
+		  (* when is (Answer false) acceptable!? *)
+		  | Question (_, _) -> raise (NotDeepEnough n)
+		  (* it might be better to expand the info given by the exception,
+            it could keep track of the position in the tree:
+            exception NotDeepEnough of nat * nat * tree *)
+		)
 	  | _ ->
-	  ( (* requires rewrite *)
-      match t with
-	    | (Answer _) -> b'
-	    | Question (n, branch) ->
-	      (
-		  let f = from_tree t 
-		  and checkb' l = (if l = n then true else (b' l))
-		  in
-	      let nextb' k =
-		    if k = n
-		    then (if (f (construct checkb' (branch true))) then true else false)
-		    else (b' n)
-		  in
-		  construct nextb' (branch (nextb' n))
-		  )
-	  )
+	    (
+		match t with
+		  | (Answer true) -> true
+		  | Question (_, _) -> raise (NotDeepEnough n)
+		  (* TODO *)
+		)
+  and a' n = true
   in
-  construct a' t
+  let costruct b' t n m =
+    try
+	  limited_construct b' t n m
+    with NotDeepEnough n ->
+	  limited_construct b' t (n+1) m
+  in
+  costruct a' t 1 0
 *)
-
 (* TEST CHAMBER *)
 
 (* functionals *)
