@@ -22,12 +22,12 @@ let to_tree f =
     try
       Answer (f b')
     with DontKnow n ->
-	  (*If the functional checks an unknown link an exception is raised
-	    and another "branch" is added to the decision making tree.
-	    The branches are based on the n-th link of the parameter sequence b',
-	    "newb'" is a new sequence where the n-th link is not unknown anymore.
-	    We continue figuring out what the result of the functional is 
-	    now that the parameter sequence has one more known link *)
+      (*If the functional checks an unknown link an exception is raised
+        and another "branch" is added to the decision making tree.
+        The branches are based on the n-th link of the parameter sequence b',
+        "newb'" is a new sequence where the n-th link is not unknown anymore.
+        We continue figuring out what the result of the functional is 
+        now that the parameter sequence has one more known link *)
       (
       let branch b =
         let newb' k =
@@ -47,15 +47,15 @@ let rec from_tree t a' =
   match t with
     | Answer b -> b (* If the tree only contains a leaf we have found the result. *)
     | Question (k, branch) ->
-	  (*Otherwise (a' k) decides which branch of the tree we follow.
-	    val branch : bool -> tree, therefore (branch (a' k))
-	    is a tree. We continue inspecting the selected subtree. *)
-	  (
-	  let subtree =
-	    branch (a' k)
-	  in
-	  from_tree subtree a'
-	  )
+      (*Otherwise (a' k) decides which branch of the tree we follow.
+        val branch : bool -> tree, therefore (branch (a' k))
+        is a tree. We continue inspecting the selected subtree. *)
+      (
+      let subtree =
+        branch (a' k)
+      in
+      from_tree subtree a'
+      )
 
 
 (* TODO: tidy up *)
@@ -69,27 +69,27 @@ let epsilon_tree t =
   let rec a' n = true
   and construct b' t =
     match t with
-	  (* If the function has reached a leaf we return the sequence as it is since there
-	    is no more tree to inspect. Otherwise we adjust the sequence based on the current
-	    root of the tree and continue with the appropriate tree branch. *)
-	  | (Answer _) -> b'
-	  | Question (n, branch) ->
-	    (
-		(* We define the corresponding functional of the tree we are inspecting as "f" and
-		  a 'testing' sequence "checkb'" with the n-th link being true. We are working with
-		  a boolean tree so this sequence corresponds to the tree's 'true' branch. *)
-		let f = from_tree t 
-		and checkb' l = (if l = n then true else (b' l))
-		in
-		(* If there exists a sequence that fits our criteria with the n-th link true, we use
-		  that, otherwise we set the n-th link of the sequence to false before moving on. *)
-	    let nextb' k =
-		  if k = n
-		  then (if (f (construct checkb' (branch true))) then true else false)
-		  else (b' n)
-		in
-		construct nextb' (branch (nextb' n))
-		)
+      (* If the function has reached a leaf we return the sequence as it is since there
+        is no more tree to inspect. Otherwise we adjust the sequence based on the current
+        root of the tree and continue with the appropriate tree branch. *)
+      | (Answer _) -> b'
+      | Question (n, branch) ->
+        (
+        (* We define the corresponding functional of the tree we are inspecting as "f" and
+          a 'testing' sequence "checkb'" with the n-th link being true. We are working with
+          a boolean tree so this sequence corresponds to the tree's 'true' branch. *)
+        let f = from_tree t 
+        and checkb' l = (if l = n then true else (b' l))
+        in
+        (* If there exists a sequence that fits our criteria with the n-th link true, we use
+          that, otherwise we set the n-th link of the sequence to false before moving on. *)
+        let nextb' k =
+          if k = n
+          then (if (f (construct checkb' (branch true))) then true else false)
+          else (b' n)
+        in
+        construct nextb' (branch (nextb' n))
+        )
   in
   construct a' t
   
@@ -102,47 +102,33 @@ let exists p = p (epsilon p)
 
 (* WORK IN PROGRESS *)
 
-exception NotDeepEnough of nat
+let rec bfs_proto f queue = 
+  (* Performs bfs search on a tree queue and applies the
+  function f to the nodes of the tree along the way. *)
+  match queue with
+    | [] -> ()
+    | t::ts -> 
+      match t with
+        | Answer b -> ()
+        | Question (n, branch) ->
+          (
+          f n;
+          let fbranch = branch false
+          and tbranch = branch true
+          in let q = ts @ [tbranch; fbranch]
+          in 
+          bfs_proto f q
+          )
+  
+let bfs_path t f queue = failwith "not implemented"
+
 (* val bfs_epsilon_tree : tree -> (nat -> bool) *)
 (* "bfs_epsilon_tree" uses bfs to construct a sequence for which the functional 
   (from_tree t) will evaluate true if such a sequence exists. If no such sequence
   exists the function still returns a sequence. *)
-(*
-let bfs_epsilon_tree t = 
-  let rec limited_construct b' t n m =
-    (* limited_construct will only inspect the tree up to a certain depth,
-	  if it checks all the options and doesn't find an answer it will raise
-	  an exception.
-      n - maximum depth
-      m - current depth  *)
-	match (n-m) with
-	  | 0 ->
-        (	  
-	    match t with
-		  | (Answer true) -> true
-		  (* when is (Answer false) acceptable!? *)
-		  | Question (_, _) -> raise (NotDeepEnough n)
-		  (* it might be better to expand the info given by the exception,
-            it could keep track of the position in the tree:
-            exception NotDeepEnough of nat * nat * tree *)
-		)
-	  | _ ->
-	    (
-		match t with
-		  | (Answer true) -> true
-		  | Question (_, _) -> raise (NotDeepEnough n)
-		  (* TODO *)
-		)
-  and a' n = true
-  in
-  let costruct b' t n m =
-    try
-	  limited_construct b' t n m
-    with NotDeepEnough n ->
-	  limited_construct b' t (n+1) m
-  in
-  costruct a' t 1 0
-*)
+let bfs_epsilon_tree t = failwith "not implemented"
+
+
 (* TEST CHAMBER *)
 
 (* functionals *)
@@ -161,17 +147,19 @@ let g' = from_tree t
 let f a' =
   match (a' 7) with
     | _ -> 
-	(match (a' 9) with
-	  | _ ->
-	  (match (a' 5) with
-	    | _ ->
-		(match (a' 3) with
-		  | true -> false
-		  | false -> true
-		)
-	  )
-	)
+    (match (a' 9) with
+      | _ ->
+      (match (a' 5) with
+        | _ ->
+        (match (a' 3) with
+          | true -> false
+          | false -> true
+        )
+      )
+    )
 
+let t = to_tree f
+    
 (* sequences *)
 
 let a1 n = true
@@ -179,15 +167,15 @@ let a1 n = true
 let a2 n =
   match n with
     | 7 -> false
-	| 12 -> false
-	| _ -> true
-	
+    | 12 -> false
+    | _ -> true
+    
 let a3 n =
   match (n mod 2) with
     | 0 -> false
-	| 1 -> true
+    | 1 -> true
 
-	
+    
 (* FOR THE FUTURE *)
 
 (* Pričakujemo, da velja: za vse
