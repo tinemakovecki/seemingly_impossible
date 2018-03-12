@@ -99,9 +99,7 @@ let rec epsilon p = epsilon_tree (to_tree p)
 (* val exists : ((nat -> bool) -> bool) -> bool *)
 let exists p = p (epsilon p)
 
-
-(* WORK IN PROGRESS *)
-
+(* val bfs_proto : (nat -> a) -> tree list -> unit *)
 let rec bfs_proto f queue = 
   (* Performs bfs search on a tree queue and applies the
   function f to the nodes of the tree along the way. *)
@@ -119,8 +117,34 @@ let rec bfs_proto f queue =
           in 
           bfs_proto f q
           )
+
+
+(* WORK IN PROGRESS *)
   
-let bfs_path t f queue = failwith "not implemented"
+type step = nat * bool
+type path = Steps of step list
+
+(* TODO: test bfs_path more, add function: path -> sequence *)
+(* val bfs_path : tree list -> path *)
+let rec bfs_path queue = 
+(* Performs a bfs search on a tree and returns a path which is
+  equivalent to the sequence an epsilon functional would return. *)
+  match queue with
+    | [] -> Steps []
+    | (t, Steps w)::ts -> 
+      match t with
+        | Answer true -> Steps w
+		| Answer false -> if ts = [] then Steps w else bfs_path ts
+        | Question (n, branch) ->
+          (
+          let fbranch = branch false
+          and tbranch = branch true
+          in 
+		  let q = ts @ [(tbranch, Steps ((n, true)::w));
+		                (fbranch, Steps ((n, false)::w))]
+          in 
+          bfs_path q
+          )
 
 (* val bfs_epsilon_tree : tree -> (nat -> bool) *)
 (* "bfs_epsilon_tree" uses bfs to construct a sequence for which the functional 
