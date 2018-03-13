@@ -127,12 +127,12 @@ let path_seq path =
     match p with
       | Steps [] -> a'
       | Steps ((n, b)::xs) -> 
-	    (
-		let b' k = if k = n then b else (a' k)
-		and new_p = Steps xs
+        (
+        let b' k = if k = n then b else (a' k)
+        and new_p = Steps xs
         in 
-		transform new_p b'
-		)
+        transform new_p b'
+        )
   and c' n = true
   in
   transform path c'
@@ -172,7 +172,16 @@ let bfs_epsilon_tree t =
 
 (* WORK IN PROGRESS *)
 
-
+type tree_construct =
+  | Unfinished
+  | Answer_c of bool
+  | Question_c of nat * (bool -> tree_construct)
+  
+let to_tree_ref f = failwith "not implemented"
+  (* construct a tree from a functional using refrences *)
+  
+  (* TODO + function: tree_construct -> tree once finished *)
+  
 (* TEST CHAMBER *)
 
 (* functionals *)
