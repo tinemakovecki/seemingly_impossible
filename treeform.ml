@@ -99,6 +99,7 @@ let rec epsilon p = epsilon_tree (to_tree p)
 (* val exists : ((nat -> bool) -> bool) -> bool *)
 let exists p = p (epsilon p)
 
+(* TODO: proper queue/heap implementation *)
 (* val bfs_proto : (nat -> a) -> tree list -> unit *)
 let rec bfs_proto f queue = 
   (* Performs bfs search on a tree queue and applies the
@@ -118,39 +119,58 @@ let rec bfs_proto f queue =
           bfs_proto f q
           )
 
+type path = Steps of (nat * bool) list
 
-(* WORK IN PROGRESS *)
+(* val path_seq : path -> (nat -> bool) *)
+let path_seq path = 
+  let rec transform p a' =
+    match p with
+      | Steps [] -> a'
+      | Steps ((n, b)::xs) -> 
+	    (
+		let b' k = if k = n then b else (a' k)
+		and new_p = Steps xs
+        in 
+		transform new_p b'
+		)
+  and c' n = true
+  in
+  transform path c'
   
-type step = nat * bool
-type path = Steps of step list
 
-(* TODO: test bfs_path more, add function: path -> sequence *)
+(* TODO: testing *)
 (* val bfs_path : tree list -> path *)
 let rec bfs_path queue = 
 (* Performs a bfs search on a tree and returns a path which is
   equivalent to the sequence an epsilon functional would return. *)
-  match queue with
+  match queue with (* elements of queue: (tree, Steps w)  *)
     | [] -> Steps []
     | (t, Steps w)::ts -> 
       match t with
         | Answer true -> Steps w
-		| Answer false -> if ts = [] then Steps w else bfs_path ts
+        | Answer false -> if ts = [] then Steps w else bfs_path ts
         | Question (n, branch) ->
           (
           let fbranch = branch false
           and tbranch = branch true
           in 
-		  let q = ts @ [(tbranch, Steps ((n, true)::w));
-		                (fbranch, Steps ((n, false)::w))]
+          let q = ts @ [(tbranch, Steps ((n, true)::w));
+                        (fbranch, Steps ((n, false)::w))]
           in 
           bfs_path q
           )
 
 (* val bfs_epsilon_tree : tree -> (nat -> bool) *)
-(* "bfs_epsilon_tree" uses bfs to construct a sequence for which the functional 
+(*  "bfs_epsilon_tree" uses bfs to construct a sequence for which the functional 
   (from_tree t) will evaluate true if such a sequence exists. If no such sequence
   exists the function still returns a sequence. *)
-let bfs_epsilon_tree t = failwith "not implemented"
+let bfs_epsilon_tree t = 
+  let way = bfs_path [(t, Steps [])]
+  in
+  path_seq way
+
+
+(* WORK IN PROGRESS *)
 
 
 (* TEST CHAMBER *)
@@ -161,10 +181,6 @@ let g a' =
   match (a' 7) with
     | true -> true
     | false -> not (a' 12)
-  
-let t = to_tree g
-
-let g' = from_tree t
 
 (* Have tried an example with up to 14 branchings, 
   did not notice significant delays in processing. *)
