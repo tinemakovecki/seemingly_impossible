@@ -177,10 +177,42 @@ type tree_construct =
   | Answer_c of bool
   | Question_c of nat * (bool -> tree_construct)
   
-let to_tree_ref f = failwith "not implemented"
+let to_tree_ref f = ()
   (* construct a tree from a functional using refrences *)
+  (*
+  let order = ref []
+  in
+  let rec a' n =
+    order := n :: !order
+	true
+  and tree_cons b l = 
+    match l with
+	  | [] -> Answer b
+	  | (x::xs) -> 
+	    (
+	    let branch = function
+		  | false -> Unfinished
+		  | true -> tree_cons b xs
+		in
+	    Question_c (x, branch)
+		)
+  in (* let discover t = match t with ... val : nat -> bool*)
+  let rec construct t g = 
+    let ans = g a';
+	and t = 
+	  let l = List.rev !order
+	  
+	in
+	(* TODO: adjust a' 
+	/ or / 
+	new auxiliary function that follows tree as long as it can, and only gives a' as answer where the tree doesn't exist yet *)
+	construct t g
+  in
+  construct Unfinished f
+  *)
+
   
-  (* TODO + function: tree_construct -> tree once finished *)
+  (* TODO: function: tree_construct -> tree, once finished *)
   
 (* TEST CHAMBER *)
 
@@ -223,6 +255,7 @@ let a3 n =
   match (n mod 2) with
     | 0 -> false
     | 1 -> true
+	| _ -> failwith "invalid input"
 
     
 (* FOR THE FUTURE *)
