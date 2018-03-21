@@ -176,40 +176,73 @@ type tree_construct =
   | Unfinished
   | Answer_c of bool
   | Question_c of nat * (bool -> tree_construct)
-  
+
+(*  
 let to_tree_ref f = ()
   (* construct a tree from a functional using refrences *)
-  (*
+  (* TODO: replace the mess by making auxilliary functions *)
   let order = ref []
   in
   let rec a' n =
     order := n :: !order
-	true
-  and tree_cons b l = 
+    true
+  and tree_part b l = 
     match l with
-	  | [] -> Answer b
-	  | (x::xs) -> 
-	    (
-	    let branch = function
-		  | false -> Unfinished
-		  | true -> tree_cons b xs
-		in
-	    Question_c (x, branch)
-		)
-  in (* let discover t = match t with ... val : nat -> bool*)
+      | [] -> Answer b
+      | (x::xs) -> 
+        (
+        let branch = function
+          | false -> Unfinished
+          | true -> tree_part b xs
+        in
+        Question_c (x, branch)
+        )
+  in (* val construct : tree_construct list -> (nat -> bool) -> tree_construct  *)
   let rec construct t g = 
-    let ans = g a';
-	and t = 
-	  let l = List.rev !order
-	  
-	in
-	(* TODO: adjust a' 
-	/ or / 
-	new auxiliary function that follows tree as long as it can, and only gives a' as answer where the tree doesn't exist yet *)
-	construct t g
+    (* TODO: finds an Unfinished in the tree with dfs *)
+    let rec find_unfinished q = (* the argument is a stack of trees and paths to them *)
+      match q with
+        | [] -> [] (* how will we notice the tree is finished? *)
+        | (t, Steps w)::ts -> 
+          match t with
+            | Unfinished -> w (* how will we notice the tree is finished? *)
+            | (Answer_c _) -> find_unfinished ts
+            | (Question_c (n, branch)) -> 
+              (let t1 = (branch true, Steps (true::w))
+              and t2 = (branch false, Steps (false::w))
+              in
+              find_unfinished t1::t2::q)
+    in
+    let way_rev = find_unfinished [t]
+    in 
+    if way_rev = [] then t
+    else 
+      (
+      let aux_seq n = 
+        let rec way = List.rev way_rev
+        and list_seq l k =
+          match l with
+            | [] -> a' k
+            | (i, b)::l2 -> if i = k then b else list_seq l2 k
+        in
+        list_seq way n
+      in
+      let ans = f aux_seq(*; ?*)
+      and ord = List.rev !order (* which order the functional checked new links in *)
+      in
+      order := [];
+      (* t_new = tree_part ans ord *)
+      (* replace the found Unfinished with a new tree part 
+      let's change the function find_unfinished to find_replace?
+      or a new function replace : tree -> tree -> path -> tree *)
+      )
+    (* if no Unfinished was found we're done *)
+    (* call again with the adjusted tree *)
+    construct t g
   in
-  construct Unfinished f
-  *)
+  construct xxx f (* TODO: switch xxx with first tree_part *)
+*)
+
 
   
   (* TODO: function: tree_construct -> tree, once finished *)
@@ -255,7 +288,7 @@ let a3 n =
   match (n mod 2) with
     | 0 -> false
     | 1 -> true
-	| _ -> failwith "invalid input"
+    | _ -> failwith "invalid input"
 
     
 (* FOR THE FUTURE *)
