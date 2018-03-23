@@ -177,7 +177,25 @@ type tree_construct =
   | Answer_c of bool
   | Question_c of nat * (bool -> tree_construct)
 
-(*  
+  
+
+(* val replace : list bool -> tree_construct -> tree_construct -> tree_construct *)
+let rec replace way t subtree = 
+  (* replaces the element of t located at way with subtree *)
+  (* val way : list bool *)
+  match way with
+    | [] -> subtree
+    | x::xs -> 
+      match t with
+        | Answer_c _-> failwith "location is invalid"
+        | Question_c (n, branch) -> 
+          let new_branch b =
+            if b = x then replace xs (branch x) subtree
+            else branch b
+          in
+          Question_c (n, new_branch)
+
+(*
 let to_tree_ref f = ()
   (* construct a tree from a functional using refrences *)
   (* TODO: replace the mess by making auxilliary functions *)
@@ -231,7 +249,11 @@ let to_tree_ref f = ()
       and ord = List.rev !order (* which order the functional checked new links in *)
       in
       order := [];
-      (* t_new = tree_part ans ord *)
+      let t_new = tree_part ans ord
+      in
+      let t' = replace way t t_new (* way doesn't match types!!!! *)
+      in
+      construct t' g
       (* replace the found Unfinished with a new tree part 
       let's change the function find_unfinished to find_replace?
       or a new function replace : tree -> tree -> path -> tree *)
@@ -240,9 +262,8 @@ let to_tree_ref f = ()
     (* call again with the adjusted tree *)
     construct t g
   in
-  construct xxx f (* TODO: switch xxx with first tree_part *)
+  construct Unfinished f (* TODO: switch x with first tree_part *)
 *)
-
 
   
   (* TODO: function: tree_construct -> tree, once finished *)
