@@ -139,7 +139,7 @@ let path_seq path =
   
 
 (* TODO: testing *)
-(* val bfs_path : tree list -> path *)
+(* val bfs_path : (tree * path) list -> path *)
 let rec bfs_path queue = 
 (* Performs a bfs search on a tree and returns a path which is
   equivalent to the sequence an epsilon functional would return. *)
@@ -177,27 +177,65 @@ type tree_construct =
   | Answer_c of bool
   | Question_c of nat * (bool -> tree_construct)
 
-  
+(* val cons_to_tree : tree_construct -> tree *)
+let rec cons_to_tree tree_cons =
+  (* Transforms a tree_construct into a regular tree. *)
+  match tree_cons with
+    | Answer_c b -> Answer b
+    | Question_c (n, branch) -> Question (n, (fun b -> cons_to_tree (branch b)))
+    | Unfinished -> failwith "cannot express unfinished in tree type"
 
 (* val replace : path -> tree_construct -> tree_construct -> tree_construct *)
 let rec replace way t subtree = 
-  (* replaces the element of t located at way with subtree *)
-  (* val way : list bool *)
+  (* Replaces the element of 't' located at 'way' with 'subtree'. *)
   match way with
     | Steps [] -> subtree
     | Steps ((_, x)::xs) -> 
       match t with
-        | Answer_c _-> failwith "location is invalid"
         | Question_c (n, branch) -> 
           let new_branch b =
             if b = x then replace (Steps xs) (branch x) subtree
             else branch b
           in
           Question_c (n, new_branch)
+		(* might be better to handle Answer_c and Unfinished seperatly, it's not quite the same *)
+		| _-> failwith "location is invalid"
 
+(* val find_unfinished : (tree * path) list -> (nat * bool) list *)
+let rec find_unfinished q = (* the argument is a stack of trees and paths to them *)
+  (* Searches through a tree_construct using dfs and finds parts that are Unfinished. *)
+  match q with
+    | [] -> []
+    | (t', Steps w)::ts -> 
+      match t' with
+        | Unfinished -> w
+        | (Answer_c _) -> find_unfinished ts
+        | (Question_c (n, branch)) -> 
+          (
+          let t1 = (branch true, Steps ((n, true)::w))
+          and t2 = (branch false, Steps ((n, false)::w))
+          in
+          find_unfinished (t1::t2::q)
+          )
 
+(* val tree_part : bool -> nat list -> tree_construct *)
+let rec tree_part b l =
+  (* Constructs a tree part, with Question_c nat values being taken from l and all 'false'
+     branches marked as Unfinished. The tree part ends with an Answer_c containing value b. *)
+  match l with
+    | [] -> Answer_c b
+    | (x::xs) -> 
+      (
+      let branch = function
+        | false -> Unfinished
+        | true -> tree_part b xs
+      in
+      Question_c (x, branch)
+      )
+
+(* val to_tree_ref : ((nat -> bool) -> bool) -> tree *)
 let to_tree_ref f =
-  (* construct a tree from a functional using refrences *)
+  (* Construct a tree from a functional using refrences *)
   (* TODO: replace the mess by making auxilliary functions 
      TODO: TESTING! *)
   let order = ref [];
@@ -205,32 +243,8 @@ let to_tree_ref f =
   let rec a' n =
     order := n :: !order;
     true
-  and tree_part b l = 
-    match l with
-      | [] -> Answer_c b
-      | (x::xs) -> 
-        (
-        let branch = function
-          | false -> Unfinished
-          | true -> tree_part b xs
-        in
-        Question_c (x, branch)
-        )
   in (* val construct : tree_construct list -> (nat -> bool) -> tree_construct  *)
   let rec construct t g = 
-    let rec find_unfinished q = (* the argument is a stack of trees and paths to them *)
-      match q with
-        | [] -> []
-        | (t', Steps w)::ts -> 
-          match t' with
-            | Unfinished -> w
-            | (Answer_c _) -> find_unfinished ts
-            | (Question_c (n, branch)) -> 
-              (let t1 = (branch true, Steps ((n, true)::w))
-              and t2 = (branch false, Steps ((n, false)::w))
-              in
-              find_unfinished (t1::t2::q))
-    in
     let way = List.rev (find_unfinished [(t, Steps [])])
     in 
     if way = [] then t
