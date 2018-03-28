@@ -10,24 +10,24 @@ type tree =
 
 (* val to_tree : ((nat -> bool) -> bool) -> tree *)
 let to_tree f =
-  (*a' is the starting sequence where the functional has not checked any link,
-    we specify more 'known' links as more of the sequence is inspected by f *)
+  (* a' is the starting sequence where the functional has not checked any link,
+     we specify more 'known' links as more of the sequence is inspected by f *)
   let rec a' n =  raise (DontKnow n)
-  (*"search" follows the decision making process of the functional
-    and generates the desired tree along the way. Vertices "Question (n, branch)" 
-    are appended when f checks the n-th link of the sequence
-    and the branches in a vertex are decided by further actions of f. *)
+  (* "search" follows the decision making process of the functional
+     and generates the desired tree along the way. Vertices "Question (n, branch)" 
+     are appended when f checks the n-th link of the sequence
+     and the branches in a vertex are decided by further actions of f. *)
   and search f b' =
     (* Try to find the result of the functional without checking any unknown links of the sequence b'*)
     try
       Answer (f b')
     with DontKnow n ->
-      (*If the functional checks an unknown link an exception is raised
-        and another "branch" is added to the decision making tree.
-        The branches are based on the n-th link of the parameter sequence b',
-        "newb'" is a new sequence where the n-th link is not unknown anymore.
-        We continue figuring out what the result of the functional is 
-        now that the parameter sequence has one more known link *)
+      (* If the functional checks an unknown link an exception is raised
+         and another "branch" is added to the decision making tree.
+         The branches are based on the n-th link of the parameter sequence b',
+         "newb'" is a new sequence where the n-th link is not unknown anymore.
+         We continue figuring out what the result of the functional is 
+         now that the parameter sequence has one more known link *)
       (
       let branch b =
         let newb' k =
@@ -47,9 +47,9 @@ let rec from_tree t a' =
   match t with
     | Answer b -> b (* If the tree only contains a leaf we have found the result. *)
     | Question (k, branch) ->
-      (*Otherwise (a' k) decides which branch of the tree we follow.
-        val branch : bool -> tree, therefore (branch (a' k))
-        is a tree. We continue inspecting the selected subtree. *)
+      (* Otherwise (a' k) decides which branch of the tree we follow.
+         val branch : bool -> tree, therefore (branch (a' k))
+         is a tree. We continue inspecting the selected subtree. *)
       (
       let subtree =
         branch (a' k)
@@ -61,17 +61,17 @@ let rec from_tree t a' =
 (* TODO: tidy up *)
 (* val epsilon_tree : tree -> (nat -> bool) *)
 (* "epsilon_tree" constructs a sequence for which the functional (from_tree t) will
-  evaluate true if such a sequence exists. If no such sequence exists the function
-  still returns a sequence. *)
+   evaluate true if such a sequence exists. If no such sequence exists the function
+   still returns a sequence. *)
 let epsilon_tree t = 
   (* We define a recursive function which adjusts a given sequence to find the answer
-    and a starting sequence "a'" to pass onto the "construct" function to start with. *)
+     and a starting sequence "a'" to pass onto the "construct" function to start with. *)
   let rec a' n = true
   and construct b' t =
     match t with
       (* If the function has reached a leaf we return the sequence as it is since there
-        is no more tree to inspect. Otherwise we adjust the sequence based on the current
-        root of the tree and continue with the appropriate tree branch. *)
+         is no more tree to inspect. Otherwise we adjust the sequence based on the current
+         root of the tree and continue with the appropriate tree branch. *)
       | (Answer _) -> b'
       | Question (n, branch) ->
         (
@@ -82,7 +82,7 @@ let epsilon_tree t =
         and checkb' l = (if l = n then true else (b' l))
         in
         (* If there exists a sequence that fits our criteria with the n-th link true, we use
-          that, otherwise we set the n-th link of the sequence to false before moving on. *)
+           that, otherwise we set the n-th link of the sequence to false before moving on. *)
         let nextb' k =
           if k = n
           then (if (f (construct checkb' (branch true))) then true else false)
@@ -103,21 +103,19 @@ let exists p = p (epsilon p)
 (* val bfs_proto : (nat -> a) -> tree list -> unit *)
 let rec bfs_proto f queue = 
   (* Performs bfs search on a tree queue and applies the
-  function f to the nodes of the tree along the way. *)
+     function f to the nodes of the tree along the way. *)
   match queue with
     | [] -> ()
-    | t::ts -> 
-      match t with
-        | Answer b -> ()
-        | Question (n, branch) ->
-          (
-          f n;
-          let fbranch = branch false
-          and tbranch = branch true
-          in let q = ts @ [tbranch; fbranch]
-          in 
-          bfs_proto f q
-          )
+    | (Answer _)::ts -> ()
+    | (Question (n, branch))::ts ->
+      (
+      f n;
+      let fbranch = branch false
+      and tbranch = branch true
+      in let q = ts @ [tbranch; fbranch]
+      in 
+      bfs_proto f q
+      )
 
 type path = Steps of (nat * bool) list
 
@@ -142,26 +140,25 @@ let path_seq path =
 (* val bfs_path : (tree * path) list -> path *)
 let rec bfs_path queue = 
 (* Performs a bfs search on a tree and returns a path which is
-  equivalent to the sequence an epsilon functional would return. *)
+   equivalent to the sequence an epsilon functional would return. *)
   match queue with (* elements of queue: (tree, Steps w)  *)
     | [] -> Steps []
-    | (t, Steps w)::ts -> 
-      match t with
-        | Answer true -> Steps w
-        | Answer false -> if ts = [] then Steps w else bfs_path ts
-        | Question (n, branch) ->
-          (
-          let fbranch = branch false
-          and tbranch = branch true
-          in 
-          let q = ts @ [(tbranch, Steps ((n, true)::w));
-                        (fbranch, Steps ((n, false)::w))]
-          in 
-          bfs_path q
-          )
+    | (Answer true, Steps w)::ts -> Steps w
+    | (Answer false, Steps w)::[] -> Steps w
+    | (Answer false, Steps w)::ts -> bfs_path ts
+    | (Question (n, branch), Steps w)::ts ->
+      (
+      let fbranch = branch false
+      and tbranch = branch true
+      in 
+      let q = ts @ [(tbranch, Steps ((n, true)::w));
+                    (fbranch, Steps ((n, false)::w))]
+      in 
+      bfs_path q
+      )
 
 (* val bfs_epsilon_tree : tree -> (nat -> bool) *)
-(*  "bfs_epsilon_tree" uses bfs to construct a sequence for which the functional 
+(* "bfs_epsilon_tree" uses bfs to construct a sequence for which the functional 
   (from_tree t) will evaluate true if such a sequence exists. If no such sequence
   exists the function still returns a sequence. *)
 let bfs_epsilon_tree t = 
@@ -198,25 +195,24 @@ let rec replace way t subtree =
             else branch b
           in
           Question_c (n, new_branch)
-		(* might be better to handle Answer_c and Unfinished seperatly, it's not quite the same *)
-		| _-> failwith "location is invalid"
+        (* might be better to handle Answer_c and Unfinished seperatly, it's not quite the same *)
+        | _-> failwith "location is invalid"
 
 (* val find_unfinished : (tree * path) list -> (nat * bool) list *)
 let rec find_unfinished q = (* the argument is a stack of trees and paths to them *)
-  (* Searches through a tree_construct using dfs and finds parts that are Unfinished. *)
+  (* Searches through a tree_construct using dfs and finds parts that are Unfinished.
+     Returns [] if the tree either doesn't contain 'Unfinished' or only contains 'Unfinished'.  *)
   match q with
     | [] -> []
-    | (t', Steps w)::ts -> 
-      match t' with
-        | Unfinished -> w
-        | (Answer_c _) -> find_unfinished ts
-        | (Question_c (n, branch)) -> 
-          (
-          let t1 = (branch true, Steps ((n, true)::w))
-          and t2 = (branch false, Steps ((n, false)::w))
-          in
-          find_unfinished (t1::t2::q)
-          )
+    | (Unfinished, Steps w)::ts -> w
+    | (Answer_c _, Steps w)::ts -> find_unfinished ts
+    | (Question_c (n, branch), Steps w)::ts -> 
+      (
+      let t1 = (branch true, Steps ((n, true)::w))
+      and t2 = (branch false, Steps ((n, false)::w))
+      in
+      find_unfinished (t1::t2::q)
+      )
 
 (* val tree_part : bool -> nat list -> tree_construct *)
 let rec tree_part b l =
@@ -235,15 +231,14 @@ let rec tree_part b l =
 
 (* val to_tree_ref : ((nat -> bool) -> bool) -> tree *)
 let to_tree_ref f =
-  (* Construct a tree from a functional using refrences *)
-  (* TODO: replace the mess by making auxilliary functions 
-     TODO: TESTING! *)
-  let order = ref [];
-  in
-  let rec a' n =
+  (* Constructs a tree from a functional using refrences *)
+  (* TODO: TESTING! *)
+  let rec order = ref [];
+  and a' n =
     order := n :: !order;
     true
-  in (* val construct : tree_construct list -> (nat -> bool) -> tree_construct  *)
+  in 
+  (* val construct : tree_construct list -> (nat -> bool) -> tree_construct  *)
   let rec construct t g = 
     let way = List.rev (find_unfinished [(t, Steps [])])
     in 
@@ -262,16 +257,14 @@ let to_tree_ref f =
       and ord = List.rev !order (* which order the functional checked new links in *)
       in
       order := [];
-      let t_new = tree_part ans ord
-      in
-      let t' = replace (Steps way) t t_new
+      let t' = replace (Steps way) t (tree_part ans ord)
       in
       construct t' g
       )
   in
-  let start_t = tree_part (f a') (List.rev !order)
+  let start_t = tree_part (f a') (List.rev !order) (* !? *)
   in
-  construct start_t f 
+  cons_to_tree (construct start_t f) 
 
 
   
