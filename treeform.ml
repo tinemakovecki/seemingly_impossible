@@ -92,12 +92,14 @@ let epsilon_tree t =
         )
   in
   construct a' t
-  
+
+
 (* val epsilon : ((nat -> bool) -> bool) -> (nat -> bool) *)
 let rec epsilon p = epsilon_tree (to_tree p)
 
 (* val exists : ((nat -> bool) -> bool) -> bool *)
 let exists p = p (epsilon p)
+
 
 (* TODO: proper queue/heap implementation *)
 (* val bfs_proto : (nat -> a) -> tree list -> unit *)
@@ -116,6 +118,7 @@ let rec bfs_proto f queue =
       in 
       bfs_proto f q
       )
+
 
 type path = Steps of (nat * bool) list
 
@@ -157,6 +160,7 @@ let rec bfs_path queue =
       bfs_path q
       )
 
+
 (* val bfs_epsilon_tree : tree -> (nat -> bool) *)
 (* "bfs_epsilon_tree" uses bfs to construct a sequence for which the functional 
   (from_tree t) will evaluate true if such a sequence exists. If no such sequence
@@ -167,12 +171,11 @@ let bfs_epsilon_tree t =
   path_seq way
 
 
-(* WORK IN PROGRESS *)
-
 type tree_construct =
   | Unfinished
   | Answer_c of bool
   | Question_c of nat * (bool -> tree_construct)
+
 
 (* val cons_to_tree : tree_construct -> tree *)
 let rec cons_to_tree tree_cons =
@@ -181,6 +184,7 @@ let rec cons_to_tree tree_cons =
     | Answer_c b -> Answer b
     | Question_c (n, branch) -> Question (n, (fun b -> cons_to_tree (branch b)))
     | Unfinished -> failwith "cannot express unfinished in tree type"
+
 
 (* val replace : path -> tree_construct -> tree_construct -> tree_construct *)
 let rec replace way t subtree = 
@@ -198,6 +202,7 @@ let rec replace way t subtree =
         (* might be better to handle Answer_c and Unfinished seperatly, it's not quite the same *)
         | _-> failwith "location is invalid"
 
+
 (* val find_unfinished : (tree * path) list -> (nat * bool) list *)
 let rec find_unfinished q = (* the argument is a stack of trees and paths to them *)
   (* Searches through a tree_construct using dfs and finds parts that are Unfinished.
@@ -214,6 +219,7 @@ let rec find_unfinished q = (* the argument is a stack of trees and paths to the
       find_unfinished (t1::t2::q)
       )
 
+
 (* val tree_part : bool -> nat list -> tree_construct *)
 let rec tree_part b l =
   (* Constructs a tree part, with Question_c nat values being taken from l and all 'false'
@@ -228,6 +234,7 @@ let rec tree_part b l =
       in
       Question_c (x, branch)
       )
+
 
 (* val to_tree_ref : ((nat -> bool) -> bool) -> tree *)
 let to_tree_ref f =
@@ -267,9 +274,14 @@ let to_tree_ref f =
   cons_to_tree (construct start_t f) 
 
 
-  
-  (* TODO: function: tree_construct -> tree, once finished *)
-  
+(* WORK IN PROGRESS *)
+
+let time f x =
+    let t = Sys.time() in
+    let fx = f x in
+    Printf.printf "Execution time: %fs\n" (Sys.time() -. t);
+    fx
+
 (* TEST CHAMBER *)
 
 (* functionals *)
