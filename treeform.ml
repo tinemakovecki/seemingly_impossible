@@ -95,7 +95,7 @@ let epsilon_tree t =
 
 
 (* val epsilon : ((nat -> bool) -> bool) -> (nat -> bool) *)
-let rec epsilon p = epsilon_tree (to_tree p)
+let epsilon p = epsilon_tree (to_tree p)
 
 (* val exists : ((nat -> bool) -> bool) -> bool *)
 let exists p = p (epsilon p)
@@ -165,10 +165,14 @@ let rec bfs_path queue =
 (* "bfs_epsilon_tree" uses bfs to construct a sequence for which the functional 
   (from_tree t) will evaluate true if such a sequence exists. If no such sequence
   exists the function still returns a sequence. *)
-let bfs_epsilon_tree t = 
+let bfs_epsilon t = 
   let way = bfs_path [(t, Steps [])]
   in
   path_seq way
+  
+
+let bfs_exists p = p (bfs_epsilon (to_tree p))
+
 
 
 type tree_construct =
@@ -274,6 +278,9 @@ let to_tree_ref f =
   cons_to_tree (construct start_t f) 
 
 
+let epsilon_ref p = epsilon_tree (to_tree_ref p)
+let exists_ref p = p (epsilon_ref p)
+
 (* WORK IN PROGRESS *)
 
 let time f x =
@@ -281,6 +288,7 @@ let time f x =
     let fx = f x in
     Printf.printf "Execution time: %fs\n" (Sys.time() -. t);
     fx
+
 
 (* TEST CHAMBER *)
 
@@ -290,10 +298,16 @@ let g a' =
   match (a' 7) with
     | true -> true
     | false -> not (a' 12)
+	
+let h a' =
+  match (a' 1) with
+    | true -> false
+	| false ->
+	  match (a' 2) with
+	    | true -> true
+		| false -> false
 
-(* Have tried an example with up to 14 branchings, 
-  did not notice significant delays in processing. *)
-let f a' =
+let f1 a' =
   match (a' 7) with
     | _ -> 
     (match (a' 9) with
@@ -307,7 +321,166 @@ let f a' =
       )
     )
 
-let t = to_tree f
+let f2 a' =
+  match (a' 1) with
+    | _ -> 
+    (match (a' 2) with
+      | _ ->
+      (match (a' 3) with
+        | _ ->
+        (match (a' 4) with
+          | _ ->
+		  (match (a' 5) with
+			| true -> true
+			| false -> false
+		  )
+        )
+      )
+    )
+	
+let f3 a' =
+  match (a' 1) with
+    | _ -> 
+    (match (a' 2) with
+      | _ ->
+      (match (a' 3) with
+        | _ ->
+        (match (a' 4) with
+          | _ ->
+		  (match (a' 5) with
+			| _ -> 
+			(match (a' 6) with
+			  | _ ->
+			  (match (a' 7) with
+				| _ ->
+				(match (a' 8) with
+				  | _ -> 
+				  (match (a' 9) with
+					| _ -> 
+					(match (a' 10) with
+					  | true -> true
+					  | false -> false
+					 
+					)
+				  )
+				)
+			  )
+			)
+		  )
+        )
+      )
+    )
+	
+let f4 a' =
+  match (a' 1) with
+    | _ -> 
+    (match (a' 2) with
+      | _ ->
+      (match (a' 3) with
+        | _ ->
+        (match (a' 4) with
+          | _ ->
+		  (match (a' 5) with
+			| _ -> 
+			(match (a' 6) with
+			  | _ ->
+			  (match (a' 7) with
+				| _ ->
+				(match (a' 8) with
+				  | _ -> 
+				  (match (a' 9) with
+					| _ -> 
+					(match (a' 10) with
+					  | _ ->
+					  (match (a' 11) with
+						| _ ->
+						(match (a' 12) with
+						  | _ -> 
+						  (match (a' 13) with
+							| _ -> 
+							(match (a' 14) with
+							  | _ ->
+							  (match (a' 15) with
+							    | true -> true
+							    | false -> false
+							  )
+							)
+						  )
+						)
+					  )
+					)
+				  )
+				)
+			  )
+			)
+		  )
+        )
+      )
+    )
+	
+let f5 a' =
+  match (a' 1) with
+    | _ -> 
+    (match (a' 2) with
+      | _ ->
+      (match (a' 3) with
+        | _ ->
+        (match (a' 4) with
+          | _ ->
+		  (match (a' 5) with
+			| _ -> 
+			(match (a' 6) with
+			  | _ ->
+			  (match (a' 7) with
+				| _ ->
+				(match (a' 8) with
+				  | _ -> 
+				  (match (a' 9) with
+					| _ -> 
+					(match (a' 10) with
+					  | _ ->
+					  (match (a' 11) with
+						| _ ->
+						(match (a' 12) with
+						  | _ -> 
+						  (match (a' 13) with
+							| _ -> 
+							(match (a' 14) with
+							  | _ ->
+							  (match (a' 15) with
+								| _ ->
+								(match (a' 16) with
+								  | _ -> 
+								  (match (a' 17) with
+									| _ -> 
+									(match (a' 18) with
+									  | _ ->
+									  (match (a' 19) with
+										| _ ->
+										(match (a' 20) with
+										  | true -> true
+										  | false -> false
+										)
+									  )
+									)
+								  )
+								)
+							  )
+							)
+						  )
+						)
+					  )
+					)
+				  )
+				)
+			  )
+			)
+		  )
+        )
+      )
+    )
+
+let t = to_tree f1
     
 (* sequences *)
 
