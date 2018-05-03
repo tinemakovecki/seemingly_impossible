@@ -154,10 +154,10 @@ let rec bfs_path queue =
       let fbranch = branch false
       and tbranch = branch true
       in 
-      let q = ts @ [(tbranch, Steps ((n, true)::w));
-                    (fbranch, Steps ((n, false)::w))]
+	  let new_t1 = (tbranch, Steps ((n, true)::w))
+	  and new_t2 = (fbranch, Steps ((n, false)::w))
       in 
-      bfs_path q
+      bfs_path (List.rev (new_t1 :: new_t2 :: List.rev ts))
       )
 
 
