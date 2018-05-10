@@ -154,8 +154,8 @@ let rec bfs_path queue =
       let fbranch = branch false
       and tbranch = branch true
       in 
-	  let new_t1 = (tbranch, Steps ((n, true)::w))
-	  and new_t2 = (fbranch, Steps ((n, false)::w))
+      let new_t1 = (tbranch, Steps ((n, true)::w))
+      and new_t2 = (fbranch, Steps ((n, false)::w))
       in 
       bfs_path (List.rev (new_t1 :: new_t2 :: List.rev ts))
       )
@@ -284,10 +284,26 @@ let exists_ref p = p (epsilon_ref p)
 (* WORK IN PROGRESS *)
 
 let time f x =
-    let t = Sys.time() in
-    let fx = f x in
-    Printf.printf "Execution time: %fs\n" (Sys.time() -. t);
-    fx
+  (* Times the execution time of a given function. *)
+  let t = Sys.time() in
+  let fx = f x in
+  Printf.printf "Execution time: %fs\n" (Sys.time() -. t);
+  fx
+    
+
+let rec random_tree deeper_p counter max_depth =
+  (* Generates a random tree with up to 'max_depth' levels. *)
+  match max_depth with
+    | 0 -> if Random.int 2 = 0 then (Answer false) else (Answer true)
+    | _ -> 
+	  match ((Random.float 1.0) < deeper_p) with
+        | true -> 
+		  let branch = fun b -> random_tree deeper_p (counter+1) (max_depth-1)
+		  in
+		  Question (counter, branch)
+        | false ->
+		  if Random.int 2 = 0 then (Answer false) else (Answer true)
+
 
 
 (* TEST CHAMBER *)
@@ -298,14 +314,14 @@ let g a' =
   match (a' 7) with
     | true -> true
     | false -> not (a' 12)
-	
+    
 let h a' =
   match (a' 1) with
     | true -> false
-	| false ->
-	  match (a' 2) with
-	    | true -> true
-		| false -> false
+    | false ->
+      match (a' 2) with
+        | true -> true
+        | false -> false
 
 let f1 a' =
   match (a' 7) with
@@ -330,14 +346,14 @@ let f2 a' =
         | _ ->
         (match (a' 4) with
           | _ ->
-		  (match (a' 5) with
-			| true -> true
-			| false -> false
-		  )
+          (match (a' 5) with
+            | true -> true
+            | false -> false
+          )
         )
       )
     )
-	
+    
 let f3 a' =
   match (a' 1) with
     | _ -> 
@@ -347,30 +363,30 @@ let f3 a' =
         | _ ->
         (match (a' 4) with
           | _ ->
-		  (match (a' 5) with
-			| _ -> 
-			(match (a' 6) with
-			  | _ ->
-			  (match (a' 7) with
-				| _ ->
-				(match (a' 8) with
-				  | _ -> 
-				  (match (a' 9) with
-					| _ -> 
-					(match (a' 10) with
-					  | true -> true
-					  | false -> false
-					 
-					)
-				  )
-				)
-			  )
-			)
-		  )
+          (match (a' 5) with
+            | _ -> 
+            (match (a' 6) with
+              | _ ->
+              (match (a' 7) with
+                | _ ->
+                (match (a' 8) with
+                  | _ -> 
+                  (match (a' 9) with
+                    | _ -> 
+                    (match (a' 10) with
+                      | true -> true
+                      | false -> false
+                     
+                    )
+                  )
+                )
+              )
+            )
+          )
         )
       )
     )
-	
+    
 let f4 a' =
   match (a' 1) with
     | _ -> 
@@ -380,44 +396,44 @@ let f4 a' =
         | _ ->
         (match (a' 4) with
           | _ ->
-		  (match (a' 5) with
-			| _ -> 
-			(match (a' 6) with
-			  | _ ->
-			  (match (a' 7) with
-				| _ ->
-				(match (a' 8) with
-				  | _ -> 
-				  (match (a' 9) with
-					| _ -> 
-					(match (a' 10) with
-					  | _ ->
-					  (match (a' 11) with
-						| _ ->
-						(match (a' 12) with
-						  | _ -> 
-						  (match (a' 13) with
-							| _ -> 
-							(match (a' 14) with
-							  | _ ->
-							  (match (a' 15) with
-							    | true -> true
-							    | false -> false
-							  )
-							)
-						  )
-						)
-					  )
-					)
-				  )
-				)
-			  )
-			)
-		  )
+          (match (a' 5) with
+            | _ -> 
+            (match (a' 6) with
+              | _ ->
+              (match (a' 7) with
+                | _ ->
+                (match (a' 8) with
+                  | _ -> 
+                  (match (a' 9) with
+                    | _ -> 
+                    (match (a' 10) with
+                      | _ ->
+                      (match (a' 11) with
+                        | _ ->
+                        (match (a' 12) with
+                          | _ -> 
+                          (match (a' 13) with
+                            | _ -> 
+                            (match (a' 14) with
+                              | _ ->
+                              (match (a' 15) with
+                                | true -> true
+                                | false -> false
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
         )
       )
     )
-	
+    
 let f5 a' =
   match (a' 1) with
     | _ -> 
@@ -427,55 +443,55 @@ let f5 a' =
         | _ ->
         (match (a' 4) with
           | _ ->
-		  (match (a' 5) with
-			| _ -> 
-			(match (a' 6) with
-			  | _ ->
-			  (match (a' 7) with
-				| _ ->
-				(match (a' 8) with
-				  | _ -> 
-				  (match (a' 9) with
-					| _ -> 
-					(match (a' 10) with
-					  | _ ->
-					  (match (a' 11) with
-						| _ ->
-						(match (a' 12) with
-						  | _ -> 
-						  (match (a' 13) with
-							| _ -> 
-							(match (a' 14) with
-							  | _ ->
-							  (match (a' 15) with
-								| _ ->
-								(match (a' 16) with
-								  | _ -> 
-								  (match (a' 17) with
-									| _ -> 
-									(match (a' 18) with
-									  | _ ->
-									  (match (a' 19) with
-										| _ ->
-										(match (a' 20) with
-										  | true -> true
-										  | false -> false
-										)
-									  )
-									)
-								  )
-								)
-							  )
-							)
-						  )
-						)
-					  )
-					)
-				  )
-				)
-			  )
-			)
-		  )
+          (match (a' 5) with
+            | _ -> 
+            (match (a' 6) with
+              | _ ->
+              (match (a' 7) with
+                | _ ->
+                (match (a' 8) with
+                  | _ -> 
+                  (match (a' 9) with
+                    | _ -> 
+                    (match (a' 10) with
+                      | _ ->
+                      (match (a' 11) with
+                        | _ ->
+                        (match (a' 12) with
+                          | _ -> 
+                          (match (a' 13) with
+                            | _ -> 
+                            (match (a' 14) with
+                              | _ ->
+                              (match (a' 15) with
+                                | _ ->
+                                (match (a' 16) with
+                                  | _ -> 
+                                  (match (a' 17) with
+                                    | _ -> 
+                                    (match (a' 18) with
+                                      | _ ->
+                                      (match (a' 19) with
+                                        | _ ->
+                                        (match (a' 20) with
+                                          | true -> true
+                                          | false -> false
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
         )
       )
     )
