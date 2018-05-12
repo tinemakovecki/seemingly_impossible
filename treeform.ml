@@ -285,10 +285,11 @@ let exists_ref p = p (epsilon_ref p)
 
 let time f x =
   (* Times the execution time of a given function. *)
-  let t = Sys.time() in
+  let t1 = Sys.time() in
   let fx = f x in
-  Printf.printf "Execution time: %fs\n" (Sys.time() -. t);
-  fx
+  let t = (Sys.time() -. t1) in
+  Printf.printf "Execution time: %fs\n" t;
+  t
     
 
 let rec random_tree deeper_p counter max_depth =
@@ -303,7 +304,29 @@ let rec random_tree deeper_p counter max_depth =
 		  Question (counter, branch)
         | false ->
 		  if Random.int 2 = 0 then (Answer false) else (Answer true)
+		  
 
+let compare f_eps g_eps tree_n deeper_p max_depth =
+  (* Takes two different tree functions and times their performance
+     on several random trees, then prints out the results. *)
+  let f_time = ref [];
+  and g_time = ref [];
+  in
+  for i = 1 to tree_n do
+    let t = random_tree deeper_p 1 max_depth;
+	in
+	let t_f = time f_eps t;
+	and t_g = time g_eps t;
+	in
+    f_time := t_f::(!f_time);
+	g_time := t_g::(!g_time);
+  done;
+  (* print out the results *)
+  (* TODO: print/give whole output *)
+  (*Printf.printf "first function times: %fs\n" t_f;
+  Printf.printf "first function times: %fs\n" t_g;*)
+  (* return!? *)
+  f_time
 
 
 (* TEST CHAMBER *)
