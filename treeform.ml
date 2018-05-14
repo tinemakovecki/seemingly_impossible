@@ -297,14 +297,21 @@ let rec random_tree deeper_p counter max_depth =
   match max_depth with
     | 0 -> if Random.int 2 = 0 then (Answer false) else (Answer true)
     | _ -> 
-	  match ((Random.float 1.0) < deeper_p) with
+      match ((Random.float 1.0) < deeper_p) with
         | true -> 
-		  let branch = fun b -> random_tree deeper_p (counter+1) (max_depth-1)
-		  in
-		  Question (counter, branch)
+          let branch = fun b -> random_tree deeper_p (counter+1) (max_depth-1)
+          in
+          Question (counter, branch)
         | false ->
-		  if Random.int 2 = 0 then (Answer false) else (Answer true)
-		  
+          if Random.int 2 = 0 then (Answer false) else (Answer true)
+          
+
+let give_time f x =
+  (* Times the execution time of a given function. *)
+  let t1 = Sys.time() in
+  let fx = f x in
+  let t = (Sys.time() -. t1) in
+  t
 
 let compare f_eps g_eps tree_n deeper_p max_depth =
   (* Takes two different tree functions and times their performance
@@ -314,19 +321,33 @@ let compare f_eps g_eps tree_n deeper_p max_depth =
   in
   for i = 1 to tree_n do
     let t = random_tree deeper_p 1 max_depth;
-	in
-	let t_f = time f_eps t;
-	and t_g = time g_eps t;
-	in
+    in
+    let t_f = give_time f_eps t;
+    and t_g = give_time g_eps t;
+    in
     f_time := t_f::(!f_time);
-	g_time := t_g::(!g_time);
+    g_time := t_g::(!g_time);
   done;
   (* print out the results *)
   (* TODO: print/give whole output *)
   (*Printf.printf "first function times: %fs\n" t_f;
   Printf.printf "first function times: %fs\n" t_g;*)
   (* return!? *)
-  f_time
+  let rec print_lists l1 l2 =
+    match (l1, l2) with
+      | ([], []) -> ()
+      | (_, []) | ([], _) -> failwith "List length does not match"
+      | (x::xs, y::ys) -> 
+        print_string "first: ";
+        print_float x;
+        print_string "      second: ";
+        print_float y;
+        print_string "\n";
+        print_lists xs ys
+  in
+  print_string "Execution times: \n";
+  print_lists (!f_time) (!g_time);
+  !f_time
 
 
 (* TEST CHAMBER *)
