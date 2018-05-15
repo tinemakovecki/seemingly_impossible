@@ -5,6 +5,22 @@ exception DontKnow of nat
 type tree =
   | Answer of bool
   | Question of nat * (bool -> tree)
+  
+type eager_tree =
+  | Eager_a of bool
+  | Eager_q of nat * eager_tree * eager_tree
+  
+(* val evaluate_tree : tree -> eager_tree *)
+let rec evaluate_tree t =
+  (* transforms a (lazy) tree to an eager tree *)
+  match t with
+    | Answer b -> Eager_a b
+	| Question (n, branch) -> 
+	  let t1 = evaluate_tree (branch false)
+	  and t2 = evaluate_tree (branch true)
+	  in
+	  Eager_q (n, t1, t2)
+
 
 (* FUNCTIONS *)
 
