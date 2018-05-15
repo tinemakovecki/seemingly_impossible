@@ -1,7 +1,11 @@
-(* type definitions *)
+(* ========================================== *)
+(* TYPE DEFINITIONS *)
+(* ========================================== *)
 
 type nat = int
 exception DontKnow of nat
+type path = Steps of (nat * bool) list
+
 type tree =
   | Answer of bool
   | Question of nat * (bool -> tree)
@@ -10,19 +14,58 @@ type eager_tree =
   | Eager_a of bool
   | Eager_q of nat * eager_tree * eager_tree
   
+type tree_construct =
+  | Unfinished
+  | Answer_c of bool
+  | Question_c of nat * (bool -> tree_construct)
+
+(* ========================================== *)
+(* AUXILIARY FUNCTIONS *)
+(* ========================================== *)
+(* Mainly for transformation between costum types. *)
+
 (* val evaluate_tree : tree -> eager_tree *)
 let rec evaluate_tree t =
-  (* transforms a (lazy) tree to an eager tree *)
+  (* Transforms a (lazy) tree to an eager tree. *)
   match t with
     | Answer b -> Eager_a b
-	| Question (n, branch) -> 
-	  let t1 = evaluate_tree (branch false)
-	  and t2 = evaluate_tree (branch true)
-	  in
-	  Eager_q (n, t1, t2)
+    | Question (n, branch) -> 
+      let t1 = evaluate_tree (branch false)
+      and t2 = evaluate_tree (branch true)
+      in
+      Eager_q (n, t1, t2)
+      
+
+(* val cons_to_tree : tree_construct -> tree *)
+let rec cons_to_tree tree_cons =
+  (* Transforms a tree_construct into a regular tree. *)
+  match tree_cons with
+    | Answer_c b -> Answer b
+    | Question_c (n, branch) -> Question (n, (fun b -> cons_to_tree (branch b)))
+    | Unfinished -> failwith "cannot express unfinished in tree type"
+    
+
+(* val path_seq : path -> (nat -> bool) *)
+let path_seq path = 
+  (* Transforms a path to a (nat -> bool) sequence.  *)
+  let rec transform p a' =
+    match p with
+      | Steps [] -> a'
+      | Steps ((n, b)::xs) -> 
+        (
+        let b' k = if k = n then b else (a' k)
+        and new_p = Steps xs
+        in 
+        transform new_p b'
+        )
+  and c' n = true
+  in
+  transform path c'
 
 
-(* FUNCTIONS *)
+(* ========================================== *)
+(* MAIN FUNCTIONS *)
+(* ========================================== *)
 
 (* val to_tree : ((nat -> bool) -> bool) -> tree *)
 let to_tree f =
@@ -134,28 +177,8 @@ let rec bfs_proto f queue =
       in 
       bfs_proto f q
       )
-
-
-type path = Steps of (nat * bool) list
-
-(* val path_seq : path -> (nat -> bool) *)
-let path_seq path = 
-  let rec transform p a' =
-    match p with
-      | Steps [] -> a'
-      | Steps ((n, b)::xs) -> 
-        (
-        let b' k = if k = n then b else (a' k)
-        and new_p = Steps xs
-        in 
-        transform new_p b'
-        )
-  and c' n = true
-  in
-  transform path c'
   
 
-(* TODO: testing *)
 (* val bfs_path : (tree * path) list -> path *)
 let rec bfs_path queue = 
 (* Performs a bfs search on a tree and returns a path which is
@@ -188,22 +211,6 @@ let bfs_epsilon t =
   
 
 let bfs_exists p = p (bfs_epsilon (to_tree p))
-
-
-
-type tree_construct =
-  | Unfinished
-  | Answer_c of bool
-  | Question_c of nat * (bool -> tree_construct)
-
-
-(* val cons_to_tree : tree_construct -> tree *)
-let rec cons_to_tree tree_cons =
-  (* Transforms a tree_construct into a regular tree. *)
-  match tree_cons with
-    | Answer_c b -> Answer b
-    | Question_c (n, branch) -> Question (n, (fun b -> cons_to_tree (branch b)))
-    | Unfinished -> failwith "cannot express unfinished in tree type"
 
 
 (* val replace : path -> tree_construct -> tree_construct -> tree_construct *)
@@ -297,16 +304,24 @@ let to_tree_ref f =
 let epsilon_ref p = epsilon_tree (to_tree_ref p)
 let exists_ref p = p (epsilon_ref p)
 
+(* ========================================== *)
 (* WORK IN PROGRESS *)
+(* ========================================== *)
+
+(* currently empty *)
+
+(* ========================================== *)
+(* FUNCTIONS FOR TESTING *)
+(* ========================================== *)
 
 let time f x =
-  (* Times the execution time of a given function. *)
+  (* Times the execution time of a given function and prints it out. *)
   let t1 = Sys.time() in
   let fx = f x in
   let t = (Sys.time() -. t1) in
   Printf.printf "Execution time: %fs\n" t;
   t
-    
+
 
 let rec random_tree deeper_p counter max_depth =
   (* Generates a random tree with up to 'max_depth' levels. *)
@@ -320,7 +335,7 @@ let rec random_tree deeper_p counter max_depth =
           Question (counter, branch)
         | false ->
           if Random.int 2 = 0 then (Answer false) else (Answer true)
-          
+
 
 let give_time f x =
   (* Times the execution time of a given function. *)
@@ -345,10 +360,6 @@ let compare f_eps g_eps tree_n deeper_p max_depth =
     g_time := t_g::(!g_time);
   done;
   (* print out the results *)
-  (* TODO: print/give whole output *)
-  (*Printf.printf "first function times: %fs\n" t_f;
-  Printf.printf "first function times: %fs\n" t_g;*)
-  (* return!? *)
   let rec print_lists l1 l2 =
     match (l1, l2) with
       | ([], []) -> ()
@@ -365,8 +376,11 @@ let compare f_eps g_eps tree_n deeper_p max_depth =
   print_lists (!f_time) (!g_time);
   !f_time
 
-
+  
+(* ========================================== *)
 (* TEST CHAMBER *)
+(* ========================================== *)
+
 
 (* functionals *)
 
@@ -382,6 +396,9 @@ let h a' =
       match (a' 2) with
         | true -> true
         | false -> false
+        
+(* worst case scenario examples: *)
+(* "Answer true" is located only at the very end of a tree. *)
 
 let f1 a' =
   match (a' 7) with
@@ -528,17 +545,8 @@ let f5 a' =
                                 (match (a' 16) with
                                   | _ -> 
                                   (match (a' 17) with
-                                    | _ -> 
-                                    (match (a' 18) with
-                                      | _ ->
-                                      (match (a' 19) with
-                                        | _ ->
-                                        (match (a' 20) with
-                                          | true -> true
-                                          | false -> false
-                                        )
-                                      )
-                                    )
+                                    | true -> true
+                                    | false -> false
                                   )
                                 )
                               )
@@ -573,19 +581,3 @@ let a3 n =
     | 0 -> false
     | 1 -> true
     | _ -> failwith "invalid input"
-
-    
-(* FOR THE FUTURE *)
-
-(* Pričakujemo, da velja: za vse
-
-    φ : (nat -> bool) -> bool
-
-   in
-
-    f : nat -> bool
-
-   velja
-
-     from_tree (to_tree φ) f = φ f
-*)
