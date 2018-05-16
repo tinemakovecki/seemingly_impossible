@@ -284,8 +284,8 @@ let rec bfs_path queue =
     | (Answer false, Steps w)::ts -> bfs_path ts
     | (Question (n, branch), Steps w)::ts ->
       (
-      let fbranch = branch false
-      and tbranch = branch true
+      let tbranch = branch true
+      and fbranch = branch false
       in 
       let new_t1 = (tbranch, Steps ((n, true)::w))
       and new_t2 = (fbranch, Steps ((n, false)::w))
@@ -302,7 +302,39 @@ let bfs_epsilon_tree t =
   let way = bfs_path [(t, Steps [])]
   in
   path_seq way
+  
 
+(* DFS *)
+
+(* val dfs_path : (tree * path) list -> path *)
+let rec dfs_path queue =
+(* Performs a dfs search on a tree and returns a path which is
+   equivalent to the sequence an epsilon functional would return. *)
+  match queue with (* elements of queue: (tree, Steps w)  *)
+    | [] -> Steps []
+    | (Answer true, Steps w)::ts -> Steps w
+    | (Answer false, Steps w)::[] -> Steps w
+    | (Answer false, Steps w)::ts -> dfs_path ts
+    | (Question (n, branch), Steps w)::ts ->
+      (
+      let tbranch = branch true
+      and fbranch = branch false
+      in 
+      let new_t1 = (tbranch, Steps ((n, true)::w))
+      and new_t2 = (fbranch, Steps ((n, false)::w))
+      in
+      dfs_path (new_t1 :: new_t2 :: ts)
+      )
+	  
+
+(* val dfs_epsilon_tree : tree -> (nat -> bool) *)
+(* "dfs_epsilon_tree" uses bfs to construct a sequence for which the functional 
+  (from_tree t) will evaluate true if such a sequence exists. If no such sequence
+  exists the function still returns a sequence. *)
+let dfs_epsilon_tree t = 
+  let way = dfs_path [(t, Steps [])]
+  in
+  path_seq way
 
 (* EPSILONS & LOGICS *)
 
@@ -314,6 +346,9 @@ let exists p = p (epsilon p)
 
 let bfs_epsilon p = bfs_epsilon_tree (to_tree p)
 let bfs_exists p = p (bfs_epsilon p)
+
+let dfs_epsilon p = dfs_epsilon_tree (to_tree p)
+let dfs_exists p = p (dfs_epsilon p)
 
 let ref_epsilon p = bfs_epsilon_tree (to_tree_ref p)
 let ref_exists p = p (ref_epsilon p)
@@ -336,7 +371,7 @@ let time f x =
   let fx = f x in
   let t = (Sys.time() -. t1) in
   Printf.printf "Execution time: %fs\n" t;
-  t
+  fx
 
 
 let rec random_tree deeper_p counter max_depth =
@@ -359,6 +394,7 @@ let give_time f x =
   let fx = f x in
   let t = (Sys.time() -. t1) in
   t
+
 
 let compare f_eps g_eps tree_n deeper_p max_depth =
   (* Takes two different tree functions and times their performance
@@ -390,7 +426,7 @@ let compare f_eps g_eps tree_n deeper_p max_depth =
   in
   print_string "Execution times: \n";
   print_lists (!f_time) (!g_time);
-  !f_time
+  !g_time
 
   
 (* ========================================== *)
